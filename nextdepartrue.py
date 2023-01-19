@@ -2,7 +2,6 @@ import requests
 import json
 from datetime import datetime
 from datetime import timedelta
-import re
 
 #MAY HAVE TIMEZONE PROBLEM IF USE VPN, i don't know
 
@@ -37,13 +36,20 @@ def getNextDeparture(stopNo, routNo):
     result = crawler(url)
     current_time = datetime.now()
     nextDeparture = []
+    
     if result['GetNextTripsForStopResult']['StopLabel'] == '':
         return 'invalid stop number'
-    print(result['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteNo'])
-    if result['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteNo'] == '':
-        return 'invalid route number'
+    routeDirection = result['GetNextTripsForStopResult']['Route']['RouteDirection']
+    if type(routeDirection) is dict and routeDirection['RouteNo']=='':
+        return 'invalid route number or no service'
     
-    trips = result['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip']
+    if type(routeDirection) is list:
+        trips = []
+        for i in routeDirection:
+            trips += i['Trips']['Trip']
+    else:
+        trips = routeDirection['Trips']['Trip']
+    
     for trip in trips:
         departureTime = current_time + timedelta(minutes=int(trip['AdjustedScheduleTime']))
         departureTime= departureTime.strftime("%H:%M")
@@ -51,10 +57,7 @@ def getNextDeparture(stopNo, routNo):
             departureTime += '*'
         destination = trip['TripDestination']
         nextDeparture.append([departureTime, destination])
-    return nextDeparture
-
-
-
+    return nestedList(nextDeparture)
 
 def main():
     stopNo = promptInput("input stop No :")
@@ -62,9 +65,7 @@ def main():
 
     stoplabel = getStopLabel(stopNo)
     nextDeparture = getNextDeparture(stopNo, routeNo)
-    nextDeparture = nestedList(nextDeparture)
     print(stoplabel)
     print(nextDeparture)
-
 
 main()

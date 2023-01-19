@@ -17,6 +17,11 @@ def crawler(url):
     result = json.loads(resp.text)
     return result
 
+def nestedList(list):
+    list = [' '.join([str(i) for i in j]) for j in list]
+    list = '\n'.join(list)
+    return list
+
 def getStopLabel(stopNo):
     url = geturl(stopNo,'1')
     result = crawler(url)
@@ -30,12 +35,20 @@ def getNextDeparture(stopNo, routNo):
     result = crawler(url)
     current_time = datetime.now()
     nextDeparture = []
-    print(result['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteNo'])
+    
     if result['GetNextTripsForStopResult']['StopLabel'] == '':
         return 'invalid stop number'
-    if result['GetNextTripsForStopResult']['Route']['RouteDirection']['RouteNo'] == '':
-        return 'invalid route number'
-    trips = result['GetNextTripsForStopResult']['Route']['RouteDirection']['Trips']['Trip']
+    routeDirection = result['GetNextTripsForStopResult']['Route']['RouteDirection']
+    if type(routeDirection) is dict and routeDirection['RouteNo']=='':
+        return 'invalid route number or no service'
+    
+    if type(routeDirection) is list:
+        trips = []
+        for i in routeDirection:
+            trips += i['Trips']['Trip']
+    else:
+        trips = routeDirection['Trips']['Trip']
+    
     for trip in trips:
         departureTime = current_time + timedelta(minutes=int(trip['AdjustedScheduleTime']))
         departureTime= departureTime.strftime("%H:%M")
@@ -43,12 +56,7 @@ def getNextDeparture(stopNo, routNo):
             departureTime += '*'
         destination = trip['TripDestination']
         nextDeparture.append([departureTime, destination])
-    return nextDeparture
-
-def nestedList(list):
-    list = [' '.join([str(i) for i in j]) for j in list]
-    list = '\n'.join(list)
-    return list
+    return nestedList(nextDeparture)
 
 
 
@@ -71,8 +79,6 @@ def echo_all(message):
     if re.match(r'^/n (\d+) (\d+)$',message.text):
         info = re.findall(r'^/n (\d+) (\d+)$',message.text)
         nextDeparture = getNextDeparture(info[0][0], info[0][1])
-        
-        nextDeparture = nestedList(nextDeparture)
         bot.reply_to(message, nextDeparture)
 
 
