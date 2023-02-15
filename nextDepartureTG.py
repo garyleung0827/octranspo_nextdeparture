@@ -62,12 +62,13 @@ def getNextDeparture(stopNo, routNo):
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-	bot.send_message(message.chat.id,'To find Bus Station, press /station')
+    bot.send_message(message.chat.id, '/s [stop number]\n\ncould tell you the station name\neg. /s 0705')
+    bot.send_message(message.chat.id, '/n [stop number] [route number]\n\ncould tell you the next departure time at the station\neg. /n 0705 88')
     
 @bot.message_handler(commands=['help'])
 def exchange_command(message):
-    bot.send_message(message.chat.id, '/s [stop number] - could tell you the station name\n eg. /s 0705')
-    bot.send_message(message.chat.id, '/n [stop number] [route number] - could tell you the next departure time at the station\n eg. /n 0705 88')
+    bot.send_message(message.chat.id, '/s [stop number]\n\ncould tell you the station name\neg. /s 0705')
+    bot.send_message(message.chat.id, '/n [stop number] [route number]\n\ncould tell you the next departure time at the station\neg. /n 0705 88')
 
 
 @bot.message_handler(func=lambda m: True)

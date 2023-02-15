@@ -2,11 +2,13 @@ import requests
 import json
 from datetime import datetime
 from datetime import timedelta
+import getStopInfo
 
 #MAY HAVE TIMEZONE PROBLEM IF USE VPN, i don't know
 
-def geturl(stopNo, routeNo):
-    return "https://www.octranspo.com/next_trips/next_trips?stop_id=" + stopNo + "&route_id=" + routeNo
+def crawlStopDeparture(stopNo, routeNo):
+    resp = requests.get("https://www.octranspo.com/next_trips/next_trips?stop_id=" + stopNo + "&route_id=" + routeNo)
+    return resp.json()
 
 def promptInput(string):
     print(string)
@@ -17,23 +19,8 @@ def nestedList(list):
     list = '\n'.join(list)
     return list
 
-# crawl text from the url and return into dictionary format
-def crawler(url):
-    resp = requests.get(url)
-    result = json.loads(resp.text)
-    return result
-
-def getStopLabel(stopNo):
-    url = geturl(stopNo,'1')
-    result = crawler(url)
-    if result['GetNextTripsForStopResult']['StopLabel'] == '':
-        return 'invalid stop number'
-    stopLabel = result['GetNextTripsForStopResult']['StopLabel']
-    return stopLabel
-
-def getNextDeparture(stopNo, routNo):
-    url = geturl(stopNo,routNo)
-    result = crawler(url)
+def getNextDeparture(stopNo, routeNo):
+    result = crawlStopDeparture(stopNo, routeNo)
     current_time = datetime.now()
     nextDeparture = []
     
@@ -63,9 +50,12 @@ def main():
     stopNo = promptInput("input stop No :")
     routeNo = promptInput("input route No :")
 
-    stoplabel = getStopLabel(stopNo)
-    nextDeparture = getNextDeparture(stopNo, routeNo)
+    88
+    #stoplabel = getStopInfo.searchStopByNumber(stopNo)
+    stoplabel = getStopInfo.searchStopByName("baseline")
+    
+    #nextDeparture = getNextDeparture(stopNo, routeNo)
     print(stoplabel)
-    print(nextDeparture)
+    #print(nextDeparture)
 
 main()
